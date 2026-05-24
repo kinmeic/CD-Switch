@@ -36,8 +36,8 @@ struct ClaudeSwitchApp: App {
             MenuBarMenu()
                 .environmentObject(appState)
         } label: {
-            Image(systemName: appState.proxyRunning ? "cpu.fill" : "cpu")
-                .symbolRenderingMode(.monochrome)
+            Image(appState.proxyRunning ? "MenuBarIconActive" : "MenuBarIcon")
+                .renderingMode(.original)
                 .id(appState.proxyRunning)
                 .accessibilityLabel(appState.proxyRunning ? "ClaudeSwitch proxy running" : "ClaudeSwitch proxy stopped")
         }
