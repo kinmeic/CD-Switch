@@ -42,7 +42,7 @@ struct ClaudeSwitchApp: App {
                 .accessibilityLabel(appState.proxyRunning ? "ClaudeSwitch proxy running" : "ClaudeSwitch proxy stopped")
         }
 
-        WindowGroup("Claude Desktop Switch", id: "main") {
+        Window("Claude Desktop Switch", id: "main") {
             MainWindow()
                 .environmentObject(appState)
                 .frame(minWidth: 700, minHeight: 450)

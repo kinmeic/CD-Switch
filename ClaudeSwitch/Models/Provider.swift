@@ -60,8 +60,4 @@ struct Provider: Identifiable, Codable, Equatable {
         self.apiKey = apiKey
         self.modelRoutes = modelRoutes
     }
-
-    static func == (lhs: Provider, rhs: Provider) -> Bool {
-        lhs.id == rhs.id
-    }
 }

@@ -134,6 +134,7 @@ final class AppState: ObservableObject {
             var normalized = provider
             normalized.modelRoutes = normalized.modelRoutes.map(\.normalized)
             providers[idx] = normalized
+            objectWillChange.send()
             if proxyServer.running {
                 proxyServer.updateProvider(normalized)
             }

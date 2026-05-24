@@ -2,7 +2,7 @@ import SwiftUI
 
 enum Tab: String, CaseIterable {
     case status = "Status"
-    case providers = "Providers"
+    case providers = "Desktop Providers"
     case settings = "Settings"
     case logs = "Logs"
 }

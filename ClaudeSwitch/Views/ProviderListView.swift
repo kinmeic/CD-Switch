@@ -47,6 +47,7 @@ struct ProviderListView: View {
             if let selectedId, let provider = appState.providers.first(where: { $0.id == selectedId }) {
                 ProviderEditor(provider: provider)
                     .environmentObject(appState)
+                    .id(provider.id)
                     .frame(maxWidth: .infinity)
             } else {
                 VStack { Spacer(); Text("Select a provider").foregroundColor(.secondary); Spacer() }
@@ -190,17 +191,25 @@ struct ProviderEditor: View {
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .onAppear {
-            isLoaded = false
-            name = provider.name
-            baseURL = provider.baseURL
-            apiKey = provider.apiKey
-            modelRoutes = provider.modelRoutes
-            DispatchQueue.main.async { isLoaded = true }
+            load(provider)
         }
+        .onChange(of: provider.id) { _ in load(provider) }
         .onChange(of: name) { _ in if isLoaded { hasChanges = true } }
         .onChange(of: baseURL) { _ in if isLoaded { hasChanges = true } }
         .onChange(of: apiKey) { _ in if isLoaded { hasChanges = true } }
         .onChange(of: modelRoutes) { _ in if isLoaded { hasChanges = true } }
+    }
+
+    private func load(_ provider: Provider) {
+        isLoaded = false
+        name = provider.name
+        baseURL = provider.baseURL
+        apiKey = provider.apiKey
+        modelRoutes = provider.modelRoutes
+        testResult = nil
+        testing = false
+        hasChanges = false
+        DispatchQueue.main.async { isLoaded = true }
     }
 
     private func save() {

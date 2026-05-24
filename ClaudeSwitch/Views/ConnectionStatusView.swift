@@ -7,6 +7,10 @@ struct ConnectionStatusView: View {
         "http://127.0.0.1:\(appState.proxyPort)/claude-desktop"
     }
 
+    private var appVersion: String {
+        Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "Unknown"
+    }
+
     var body: some View {
         ScrollView {
             VStack(spacing: 20) {
@@ -109,7 +113,7 @@ struct ConnectionStatusView: View {
             }
 
             // Version
-            Text("v1.0.2")
+            Text("v\(appVersion)")
                 .font(.caption2)
                 .foregroundColor(.secondary)
             }

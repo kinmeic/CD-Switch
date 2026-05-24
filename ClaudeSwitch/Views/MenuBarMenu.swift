@@ -19,7 +19,7 @@ struct MenuBarMenu: View {
 
     @ViewBuilder
     private var providerMenu: some View {
-        Menu("Providers") {
+        Menu("Desktop Providers") {
             if appState.providers.isEmpty {
                 Text("No Providers")
             } else {
