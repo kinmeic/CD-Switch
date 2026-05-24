@@ -1,4 +1,4 @@
-# ClaudeSwitch
+# Claude Desktop Switch
 
 A native macOS menu bar app for switching AI providers on Claude Desktop, with local proxy routing and model discovery support.
 
@@ -22,7 +22,7 @@ Built with Swift + SwiftUI. No external dependencies.
 ## Build
 
 ```bash
-cd ClaudeSwitch
+cd CD-Switch
 xcodebuild -project ClaudeSwitch.xcodeproj -target ClaudeSwitch -configuration Debug CODE_SIGNING_ALLOWED=NO
 open build/Debug/ClaudeSwitch.app
 ```
@@ -51,7 +51,7 @@ ClaudeSwitch acts as a gateway between Claude Desktop and third-party AI provide
 ## Architecture
 
 ```
-ClaudeSwitch/
+CD-Switch/
 ├── Models/          Provider, ModelRoute, ModelRole
 ├── ViewModels/      AppState (central state + persistence)
 ├── Views/           Status, Providers, Settings, MenuBar

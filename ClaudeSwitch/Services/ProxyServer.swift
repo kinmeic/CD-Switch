@@ -173,7 +173,7 @@ final class ProxyServer {
 
         logger.info("\(method) \(path)")
 
-        if method == "GET" && path == "/health" {
+        if method == "GET" && (path == "/health" || path == "/claude-desktop/health") {
             recordRequest(method: method, path: path, providerName: nil, status: 200, startedAt: startedAt)
             sendResponse(connection: connection, status: 200, body: Data("{\"status\":\"ok\"}".utf8))
         } else if method == "GET" && path.hasPrefix("/claude-desktop/v1/models") {

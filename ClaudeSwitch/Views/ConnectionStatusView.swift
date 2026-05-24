@@ -109,7 +109,7 @@ struct ConnectionStatusView: View {
             }
 
             // Version
-            Text("v1.0.0")
+            Text("v1.0.1")
                 .font(.caption2)
                 .foregroundColor(.secondary)
             }
