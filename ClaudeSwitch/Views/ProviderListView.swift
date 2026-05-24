@@ -137,7 +137,7 @@ struct ProviderEditor: View {
                             .font(.headline)
                             .padding(.horizontal, 20)
 
-                        Text("Select a model role to generate routes. \"Display Name\" appears in Claude Desktop; \"Actual Model\" is sent to the upstream provider.")
+                        Text("Model ID is what Claude Desktop sees. Display Name appears in Claude Desktop, and Upstream Model is sent to the provider.")
                             .font(.caption)
                             .foregroundColor(.secondary)
                             .padding(.horizontal, 20)
@@ -208,8 +208,9 @@ struct ProviderEditor: View {
         updated.name = name
         updated.baseURL = baseURL
         updated.apiKey = apiKey
-        updated.modelRoutes = modelRoutes
+        updated.modelRoutes = modelRoutes.map(\.normalized)
         appState.updateProvider(updated)
+        modelRoutes = updated.modelRoutes
         hasChanges = false
     }
 
@@ -229,6 +230,7 @@ struct ProviderEditor: View {
 // MARK: - Model Routes Table
 
 struct ModelRoutesTable: View {
+    @EnvironmentObject private var appState: AppState
     @Binding var modelRoutes: [ModelRoute]
     let baseURL: String
     let apiKey: String
@@ -236,15 +238,12 @@ struct ModelRoutesTable: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            // Table header — use the same layout as row but with text labels
             HStack(spacing: 12) {
-                // Simulate Picker's internal label space
-                Color.clear.frame(width: 0)
-                Text("Role")
-                    .frame(width: 100, alignment: .leading)
+                Text("Model ID")
+                    .frame(width: 180, alignment: .leading)
                 Text("Display Name")
                     .frame(maxWidth: .infinity, alignment: .leading)
-                Text("Actual Model")
+                Text("Upstream Model")
                     .frame(maxWidth: .infinity, alignment: .leading)
                 Text("1M")
                     .frame(width: 36, alignment: .center)
@@ -289,7 +288,8 @@ struct ModelRoutesTable: View {
                 .disabled(discovering || apiKey.isEmpty)
 
                 Button {
-                    modelRoutes.append(ModelRoute(routeId: "claude-haiku-4-5", upstreamModel: "", labelOverride: nil, supports1m: true))
+                    let defaultModelId = ModelRoute.normalizedClaudeModelIds(appState.claudeModelIds)[0]
+                    modelRoutes.append(ModelRoute(routeId: defaultModelId, upstreamModel: "", labelOverride: nil, supports1m: true))
                 } label: {
                     HStack(spacing: 4) {
                         Image(systemName: "plus")
@@ -310,15 +310,12 @@ struct ModelRoutesTable: View {
     @ViewBuilder
     private func routeRow(_ route: Binding<ModelRoute>) -> some View {
         HStack(spacing: 12) {
-            Picker("", selection: Binding(
-                get: { route.wrappedValue.role },
-                set: { route.wrappedValue.role = $0 }
-            )) {
-                ForEach(ModelRole.allCases, id: \.self) { role in
-                    Text(role.displayName).tag(role)
+            Picker("", selection: route.routeId) {
+                ForEach(availableModelIds(for: route.wrappedValue.routeId), id: \.self) { modelId in
+                    Text(modelId).tag(modelId)
                 }
             }
-            .frame(width: 100)
+            .frame(width: 180)
             .labelsHidden()
 
             TextField("Display Name", text: Binding(
@@ -327,7 +324,7 @@ struct ModelRoutesTable: View {
             ))
             .textFieldStyle(.roundedBorder)
 
-            TextField("Model ID", text: route.upstreamModel)
+            TextField("Provider model ID", text: route.upstreamModel)
                 .textFieldStyle(.roundedBorder)
 
             Toggle("", isOn: route.supports1m)
@@ -343,6 +340,15 @@ struct ModelRoutesTable: View {
         }
         .padding(.horizontal, 8)
         .padding(.vertical, 6)
+    }
+
+    private func availableModelIds(for currentValue: String) -> [String] {
+        var ids = ModelRoute.normalizedClaudeModelIds(appState.claudeModelIds)
+        let current = currentValue.trimmingCharacters(in: .whitespacesAndNewlines)
+        if !current.isEmpty, !ids.contains(current) {
+            ids.append(current)
+        }
+        return ids
     }
 
     private func discoverModels() {

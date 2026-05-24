@@ -1,20 +1,12 @@
 import Foundation
 
-enum ModelRole: String, Codable, CaseIterable {
-    case sonnet = "claude-sonnet-4-6"
-    case opus = "claude-opus-4-7"
-    case haiku = "claude-haiku-4-5"
-
-    var displayName: String {
-        switch self {
-        case .sonnet: return "Sonnet"
-        case .opus: return "Opus"
-        case .haiku: return "Haiku"
-        }
-    }
-}
-
 struct ModelRoute: Codable, Identifiable, Equatable {
+    static let defaultClaudeModelIds = [
+        "claude-sonnet-4-6",
+        "claude-opus-4-7",
+        "claude-haiku-4-5",
+    ]
+
     var id = UUID()
     var routeId: String
     var upstreamModel: String
@@ -25,16 +17,33 @@ struct ModelRoute: Codable, Identifiable, Equatable {
         case routeId, upstreamModel, labelOverride, supports1m
     }
 
-    var role: ModelRole {
-        get { ModelRole(rawValue: routeId) ?? .haiku }
-        set { routeId = newValue.rawValue }
+    static let defaultRoutes: [ModelRoute] = [
+        ModelRoute(routeId: defaultClaudeModelIds[0], upstreamModel: "", labelOverride: nil, supports1m: true),
+        ModelRoute(routeId: defaultClaudeModelIds[1], upstreamModel: "", labelOverride: nil, supports1m: true),
+        ModelRoute(routeId: defaultClaudeModelIds[2], upstreamModel: "", labelOverride: nil, supports1m: true),
+    ]
+
+    var normalized: ModelRoute {
+        var route = self
+        route.routeId = route.routeId.trimmingCharacters(in: .whitespacesAndNewlines)
+        route.upstreamModel = route.upstreamModel.trimmingCharacters(in: .whitespacesAndNewlines)
+        route.labelOverride = route.labelOverride?.trimmingCharacters(in: .whitespacesAndNewlines)
+        if route.labelOverride?.isEmpty == true {
+            route.labelOverride = nil
+        }
+        return route
     }
 
-    static let defaultRoutes: [ModelRoute] = [
-        ModelRoute(routeId: "claude-sonnet-4-6", upstreamModel: "", labelOverride: nil, supports1m: true),
-        ModelRoute(routeId: "claude-opus-4-7", upstreamModel: "", labelOverride: nil, supports1m: true),
-        ModelRoute(routeId: "claude-haiku-4-5", upstreamModel: "", labelOverride: nil, supports1m: true),
-    ]
+    static func normalizedClaudeModelIds(_ ids: [String]) -> [String] {
+        var seen = Set<String>()
+        let cleaned = ids.compactMap { raw -> String? in
+            let id = raw.trimmingCharacters(in: .whitespacesAndNewlines)
+            guard !id.isEmpty, !seen.contains(id) else { return nil }
+            seen.insert(id)
+            return id
+        }
+        return cleaned.isEmpty ? defaultClaudeModelIds : cleaned
+    }
 }
 
 struct Provider: Identifiable, Codable, Equatable {

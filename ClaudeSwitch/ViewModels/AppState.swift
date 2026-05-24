@@ -34,6 +34,16 @@ final class AppState: ObservableObject {
     @Published var claudeDesktopPath: String {
         didSet { AppEnvironment.shared.set(claudeDesktopPath, forKey: "claudeDesktopPath") }
     }
+    @Published var claudeModelIds: [String] {
+        didSet {
+            let normalized = ModelRoute.normalizedClaudeModelIds(claudeModelIds)
+            if claudeModelIds != normalized {
+                claudeModelIds = normalized
+                return
+            }
+            AppEnvironment.shared.set(normalized, forKey: "claudeModelIds")
+        }
+    }
     @Published private(set) var proxyRunning = false
     @Published private(set) var requestLogs: [ProxyRequestLog] = []
 
@@ -60,6 +70,7 @@ final class AppState: ObservableObject {
         self.proxyPort = defaults.object(forKey: "proxyPort") as? Int ?? AppEnvironment.defaultPort
         self.autoStartProxy = defaults.bool(forKey: "autoStartProxy")
         self.claudeDesktopPath = defaults.string(forKey: "claudeDesktopPath") ?? AppEnvironment.defaultClaudeDesktopPath
+        self.claudeModelIds = ModelRoute.normalizedClaudeModelIds(defaults.stringArray(forKey: "claudeModelIds") ?? ModelRoute.defaultClaudeModelIds)
 
         // Load or generate gateway token — persisted explicitly since didSet won't fire in init
         if let stored = defaults.string(forKey: "gatewayToken"), !stored.isEmpty {
@@ -106,7 +117,9 @@ final class AppState: ObservableObject {
     // MARK: - Provider Management
 
     func addProvider(_ provider: Provider) {
-        providers.append(provider)
+        var normalized = provider
+        normalized.modelRoutes = normalized.modelRoutes.map(\.normalized)
+        providers.append(normalized)
     }
 
     func removeProvider(_ provider: Provider) {
@@ -118,9 +131,11 @@ final class AppState: ObservableObject {
 
     func updateProvider(_ provider: Provider) {
         if let idx = providers.firstIndex(where: { $0.id == provider.id }) {
-            providers[idx] = provider
+            var normalized = provider
+            normalized.modelRoutes = normalized.modelRoutes.map(\.normalized)
+            providers[idx] = normalized
             if proxyServer.running {
-                proxyServer.updateProvider(provider)
+                proxyServer.updateProvider(normalized)
             }
         }
     }
@@ -233,6 +248,8 @@ final class AppState: ObservableObject {
 
         if provider.modelRoutes.isEmpty {
             errors.append("Active provider has no model routes")
+        } else if provider.modelRoutes.contains(where: { $0.routeId.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }) {
+            errors.append("Every model route needs a Claude Desktop model ID")
         } else if provider.modelRoutes.contains(where: { $0.upstreamModel.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }) {
             errors.append("Every model route needs an actual upstream model")
         }
