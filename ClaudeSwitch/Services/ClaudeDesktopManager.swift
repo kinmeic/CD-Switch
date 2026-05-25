@@ -79,8 +79,16 @@ enum ClaudeDesktopManager {
         ]
 
         let models: [Any] = provider.modelRoutes.map { route in
-            if let label = route.labelOverride, !label.isEmpty {
-                return ["labelOverride": label, "name": route.routeId] as [String: Any]
+            let hasLabel = route.labelOverride?.isEmpty == false
+            if hasLabel || route.supports1m {
+                var entry: [String: Any] = ["name": route.routeId]
+                if hasLabel {
+                    entry["labelOverride"] = route.labelOverride
+                }
+                if route.supports1m {
+                    entry["supports1m"] = true
+                }
+                return entry as Any
             } else {
                 return route.routeId as Any
             }
