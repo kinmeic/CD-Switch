@@ -18,13 +18,15 @@ struct ProviderListView: View {
                             }
                             .tag(provider.id)
                             .contextMenu {
-                                Button("Duplicate") {
-                                    let copy = appState.duplicateProvider(provider)
-                                    selectedId = copy.id
-                                }
-                                Button("Delete") {
-                                    appState.removeProvider(provider)
-                                    if selectedId == provider.id { selectedId = nil }
+                                if !provider.isOfficial {
+                                    Button("Duplicate") {
+                                        let copy = appState.duplicateProvider(provider)
+                                        selectedId = copy.id
+                                    }
+                                    Button("Delete") {
+                                        appState.removeProvider(provider)
+                                        if selectedId == provider.id { selectedId = nil }
+                                    }
                                 }
                             }
                     }
@@ -40,8 +42,10 @@ struct ProviderListView: View {
                         Button { appState.setActive(provider) } label: { Image(systemName: "checkmark.circle") }
                             .buttonStyle(.borderless)
                             .help("Set as active provider")
-                        Button { appState.removeProvider(provider); self.selectedId = nil } label: { Image(systemName: "minus") }
-                            .buttonStyle(.borderless)
+                        if !provider.isOfficial {
+                            Button { appState.removeProvider(provider); self.selectedId = nil } label: { Image(systemName: "minus") }
+                                .buttonStyle(.borderless)
+                        }
                     }
                 }
                 .padding(8)
@@ -95,6 +99,10 @@ struct ProviderRow: View {
                 .fontWeight(isActive ? .semibold : .regular)
                 .lineLimit(1)
             Spacer()
+            if provider.isOfficial {
+                Image(systemName: "checkmark.shield")
+                    .foregroundColor(.secondary).font(.caption)
+            }
             if isActive {
                 Image(systemName: "checkmark.circle.fill")
                     .foregroundColor(.green).font(.caption)
@@ -123,6 +131,19 @@ struct ProviderEditor: View {
         VStack(alignment: .leading, spacing: 0) {
             ScrollView {
                 VStack(alignment: .leading, spacing: 0) {
+                    if provider.isOfficial {
+                        VStack(alignment: .leading, spacing: 10) {
+                            Text("Claude Desktop Official")
+                                .font(.headline)
+                            Text("Uses Claude Desktop's native sign-in. Setting this as active restores the official login mode and stops the local proxy.")
+                                .foregroundColor(.secondary)
+                            Button("Restore Official Login") {
+                                appState.setActive(provider)
+                            }
+                            .buttonStyle(.borderedProminent)
+                        }
+                        .padding(20)
+                    } else {
                     // General fields
                     VStack(alignment: .leading, spacing: 8) {
                         Text("General")
@@ -170,11 +191,13 @@ struct ProviderEditor: View {
                             .padding(.horizontal, 20)
                     }
                     .padding(.vertical, 8)
+                    }
                 }
             }
 
             // Bottom bar: Test Connection + Save (outside scroll)
-            HStack {
+            if !provider.isOfficial {
+                HStack {
                 Button {
                     testing = true
                     testResult = nil
@@ -211,6 +234,7 @@ struct ProviderEditor: View {
                 }
             }
             .padding(20)
+            }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .onAppear {
@@ -392,7 +416,7 @@ struct ModelRoutesTable: View {
         request.setValue("2023-06-01", forHTTPHeaderField: "anthropic-version")
         request.timeoutInterval = 10
 
-        URLSession.shared.dataTask(with: request) { data, _, _ in
+        NetworkSessionManager.shared.session.dataTask(with: request) { data, _, _ in
             defer { DispatchQueue.main.async { discovering = false } }
             guard let data,
                   let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],

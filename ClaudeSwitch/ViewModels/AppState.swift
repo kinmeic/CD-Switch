@@ -31,6 +31,37 @@ final class AppState: ObservableObject {
     @Published var autoStartProxy: Bool {
         didSet { AppEnvironment.shared.set(autoStartProxy, forKey: "autoStartProxy") }
     }
+    @Published var rectifierEnabled: Bool {
+        didSet {
+            AppEnvironment.shared.set(rectifierEnabled, forKey: "rectifierEnabled")
+            proxyServer.updateRectifierConfig(rectifierConfig)
+        }
+    }
+    @Published var rectifyThinkingSignature: Bool {
+        didSet {
+            AppEnvironment.shared.set(rectifyThinkingSignature, forKey: "rectifyThinkingSignature")
+            proxyServer.updateRectifierConfig(rectifierConfig)
+        }
+    }
+    @Published var rectifyThinkingBudget: Bool {
+        didSet {
+            AppEnvironment.shared.set(rectifyThinkingBudget, forKey: "rectifyThinkingBudget")
+            proxyServer.updateRectifierConfig(rectifierConfig)
+        }
+    }
+    @Published var outboundProxyURL: String {
+        didSet {
+            let trimmed = outboundProxyURL.trimmingCharacters(in: .whitespacesAndNewlines)
+            if outboundProxyURL != trimmed {
+                outboundProxyURL = trimmed
+                return
+            }
+            AppEnvironment.shared.set(trimmed, forKey: "outboundProxyURL")
+            if NetworkSessionManager.validationError(for: trimmed) == nil {
+                NetworkSessionManager.shared.updateProxyURL(trimmed)
+            }
+        }
+    }
     @Published var claudeDesktopPath: String {
         didSet { AppEnvironment.shared.set(claudeDesktopPath, forKey: "claudeDesktopPath") }
     }
@@ -54,6 +85,18 @@ final class AppState: ObservableObject {
         providers.first { $0.id == activeProviderId }
     }
 
+    var rectifierConfig: RectifierConfig {
+        RectifierConfig(
+            enabled: rectifierEnabled,
+            requestThinkingSignature: rectifyThinkingSignature,
+            requestThinkingBudget: rectifyThinkingBudget
+        )
+    }
+
+    var outboundProxyValidationMessage: String? {
+        NetworkSessionManager.validationError(for: outboundProxyURL)
+    }
+
     var isApplied: Bool {
         guard activeProvider != nil else { return false }
         // Check if the profile file exists and matches
@@ -69,6 +112,10 @@ final class AppState: ObservableObject {
         let defaults = AppEnvironment.shared
         self.proxyPort = defaults.object(forKey: "proxyPort") as? Int ?? AppEnvironment.defaultPort
         self.autoStartProxy = defaults.bool(forKey: "autoStartProxy")
+        self.rectifierEnabled = defaults.object(forKey: "rectifierEnabled") as? Bool ?? RectifierConfig.default.enabled
+        self.rectifyThinkingSignature = defaults.object(forKey: "rectifyThinkingSignature") as? Bool ?? RectifierConfig.default.requestThinkingSignature
+        self.rectifyThinkingBudget = defaults.object(forKey: "rectifyThinkingBudget") as? Bool ?? RectifierConfig.default.requestThinkingBudget
+        self.outboundProxyURL = defaults.string(forKey: "outboundProxyURL") ?? ""
         self.claudeDesktopPath = defaults.string(forKey: "claudeDesktopPath") ?? AppEnvironment.defaultClaudeDesktopPath
         self.claudeModelIds = ModelRoute.normalizedClaudeModelIds(defaults.stringArray(forKey: "claudeModelIds") ?? ModelRoute.defaultClaudeModelIds)
 
@@ -88,6 +135,7 @@ final class AppState: ObservableObject {
         } else {
             self.providers = PresetProviders.builtInProviders()
         }
+        self.providers = Self.providersWithOfficialPreset(self.providers)
 
         self.activeProviderId = {
             if let str = defaults.string(forKey: "activeProviderId") {
@@ -95,6 +143,9 @@ final class AppState: ObservableObject {
             }
             return nil
         }()
+
+        proxyServer.updateRectifierConfig(rectifierConfig)
+        NetworkSessionManager.shared.updateProxyURL(outboundProxyURL)
 
         // Bind proxy state
         proxyServer.$running
@@ -123,6 +174,7 @@ final class AppState: ObservableObject {
     }
 
     func removeProvider(_ provider: Provider) {
+        guard !provider.isOfficial else { return }
         providers.removeAll { $0.id == provider.id }
         if activeProviderId == provider.id {
             activeProviderId = nil
@@ -130,6 +182,7 @@ final class AppState: ObservableObject {
     }
 
     func updateProvider(_ provider: Provider) {
+        guard !provider.isOfficial else { return }
         if let idx = providers.firstIndex(where: { $0.id == provider.id }) {
             var normalized = provider
             normalized.modelRoutes = normalized.modelRoutes.map(\.normalized)
@@ -143,16 +196,27 @@ final class AppState: ObservableObject {
     }
 
     func duplicateProvider(_ provider: Provider) -> Provider {
+        guard !provider.isOfficial else { return provider }
         var copy = provider
         copy.id = UUID()
         copy.name = "\(provider.name) Copy"
+        copy.isOfficial = false
         addProvider(copy)
         return copy
     }
 
     func setActive(_ provider: Provider) {
-        guard activeProviderId != provider.id else { return }
+        if activeProviderId == provider.id {
+            if provider.isOfficial {
+                restoreOfficialClaudeDesktopLogin()
+            }
+            return
+        }
         activeProviderId = provider.id
+        if provider.isOfficial {
+            restoreOfficialClaudeDesktopLogin()
+            return
+        }
         if proxyServer.running, let activeProvider {
             syncRunningProxy(provider: activeProvider, showRestartNotice: true)
         }
@@ -164,6 +228,11 @@ final class AppState: ObservableObject {
         guard let provider = activeProvider else {
             proxyServer.lastError = "Select a provider before starting proxy"
             logger.warning("No active provider selected")
+            return
+        }
+
+        if provider.isOfficial {
+            restoreOfficialClaudeDesktopLogin()
             return
         }
 
@@ -210,6 +279,16 @@ final class AppState: ObservableObject {
         }
     }
 
+    private static func providersWithOfficialPreset(_ providers: [Provider]) -> [Provider] {
+        var normalized = providers
+        if let idx = normalized.firstIndex(where: { $0.id == Provider.officialProviderId || $0.isOfficial }) {
+            normalized[idx] = PresetProviders.officialProvider
+        } else {
+            normalized.insert(PresetProviders.officialProvider, at: 0)
+        }
+        return normalized
+    }
+
     private func saveActiveProviderId() {
         AppEnvironment.shared.set(activeProviderId?.uuidString, forKey: "activeProviderId")
     }
@@ -227,6 +306,11 @@ final class AppState: ObservableObject {
     }
 
     private func syncRunningProxy(provider: Provider, showRestartNotice: Bool) {
+        guard !provider.isOfficial else {
+            restoreOfficialClaudeDesktopLogin()
+            return
+        }
+
         let preflightErrors = preflightErrors(provider: provider)
         guard preflightErrors.isEmpty else {
             proxyServer.lastError = preflightErrors.joined(separator: "\n")
@@ -261,6 +345,9 @@ final class AppState: ObservableObject {
 
     private func preflightErrors(provider: Provider) -> [String] {
         var errors: [String] = []
+        if provider.isOfficial {
+            return errors
+        }
 
         if !(1...65535).contains(proxyPort) {
             errors.append("Port must be between 1 and 65535")
@@ -336,6 +423,11 @@ final class AppState: ObservableObject {
     // MARK: - Test Connection
 
     func testConnection(provider: Provider, completion: @escaping (Result<String, Error>) -> Void) {
+        guard !provider.isOfficial else {
+            completion(.success("Claude Desktop official login uses the native app sign-in"))
+            return
+        }
+
         guard let url = URL(string: provider.baseURL + "/v1/messages") else {
             completion(.failure(NSError(domain: "test", code: -1, userInfo: [NSLocalizedDescriptionKey: "Invalid URL"])))
             return
@@ -356,7 +448,7 @@ final class AppState: ObservableObject {
         ]
         request.httpBody = try? JSONSerialization.data(withJSONObject: testBody)
 
-        URLSession.shared.dataTask(with: request) { data, response, error in
+        NetworkSessionManager.shared.session.dataTask(with: request) { data, response, error in
             if let error {
                 DispatchQueue.main.async { completion(.failure(error)) }
                 return
@@ -378,5 +470,17 @@ final class AppState: ObservableObject {
                 DispatchQueue.main.async { completion(.failure(NSError(domain: "test", code: status, userInfo: [NSLocalizedDescriptionKey: msg]))) }
             }
         }.resume()
+    }
+
+    private func restoreOfficialClaudeDesktopLogin() {
+        do {
+            proxyServer.stop()
+            try ClaudeDesktopManager.restoreOfficial()
+            showClaudeDesktopRestartNotice()
+            logger.info("Restored Claude Desktop official login")
+        } catch {
+            proxyServer.lastError = "Failed to restore Claude Desktop official login: \(error.localizedDescription)"
+            logger.error("Failed to restore official login: \(error.localizedDescription)")
+        }
     }
 }

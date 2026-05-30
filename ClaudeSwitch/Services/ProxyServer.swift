@@ -37,6 +37,18 @@ struct ProxyRequestLog: Identifiable {
     let error: String?
 }
 
+struct RectifierConfig: Equatable {
+    var enabled: Bool
+    var requestThinkingSignature: Bool
+    var requestThinkingBudget: Bool
+
+    static let `default` = RectifierConfig(
+        enabled: true,
+        requestThinkingSignature: true,
+        requestThinkingBudget: true
+    )
+}
+
 // MARK: - ProxyServer
 
 final class ProxyServer {
@@ -44,6 +56,7 @@ final class ProxyServer {
     private let queue = DispatchQueue(label: "com.claude.switch.proxy", qos: .userInitiated)
     private var gatewayToken: String = ""
     private var activeProvider: Provider?
+    private var rectifierConfig: RectifierConfig = .default
     private let maxRequestBodyBytes = 10 * 1024 * 1024
 
     @Published var running = false
@@ -112,6 +125,10 @@ final class ProxyServer {
 
     func updateToken(_ token: String) {
         self.gatewayToken = token
+    }
+
+    func updateRectifierConfig(_ config: RectifierConfig) {
+        self.rectifierConfig = config
     }
 
     func clearRequestLogs() {
@@ -275,11 +292,21 @@ final class ProxyServer {
         originalRequest: HTTPRequest,
         startedAt: Date
     ) {
-        guard let url = URL(string: provider.baseURL + path) else {
+        guard let urlRequest = makeUpstreamRequest(provider: provider, path: path, body: body, isStreaming: isStreaming) else {
             recordRequest(method: originalRequest.method, path: originalRequest.path, providerName: provider.name, status: 502, startedAt: startedAt, error: "Invalid upstream URL")
             sendResponse(connection: connection, status: 502, body: errorBody("Invalid upstream URL"))
             return
         }
+
+        if isStreaming {
+            streamForward(request: urlRequest, provider: provider, path: path, body: body, connection: connection, originalRequest: originalRequest, startedAt: startedAt)
+        } else {
+            simpleForward(request: urlRequest, provider: provider, path: path, body: body, connection: connection, originalRequest: originalRequest, startedAt: startedAt)
+        }
+    }
+
+    private func makeUpstreamRequest(provider: Provider, path: String, body: Data, isStreaming: Bool) -> URLRequest? {
+        guard let url = URL(string: provider.baseURL + path) else { return nil }
 
         var urlRequest = URLRequest(url: url)
         urlRequest.httpMethod = "POST"
@@ -292,14 +319,22 @@ final class ProxyServer {
 
         if isStreaming {
             urlRequest.setValue("text/event-stream", forHTTPHeaderField: "Accept")
-            streamForward(request: urlRequest, provider: provider, connection: connection, originalRequest: originalRequest, startedAt: startedAt)
-        } else {
-            simpleForward(request: urlRequest, provider: provider, connection: connection, originalRequest: originalRequest, startedAt: startedAt)
         }
+
+        return urlRequest
     }
 
-    private func simpleForward(request: URLRequest, provider: Provider, connection: NWConnection, originalRequest: HTTPRequest, startedAt: Date) {
-        let task = URLSession.shared.dataTask(with: request) { [weak self] data, response, error in
+    private func simpleForward(
+        request: URLRequest,
+        provider: Provider,
+        path: String,
+        body: Data,
+        connection: NWConnection,
+        originalRequest: HTTPRequest,
+        startedAt: Date,
+        rectifierRetried: Bool = false
+    ) {
+        let task = NetworkSessionManager.shared.session.dataTask(with: request) { [weak self] data, response, error in
             guard let self else { return }
 
             if let error {
@@ -314,6 +349,27 @@ final class ProxyServer {
             let body = data ?? Data()
 
             if status >= 400 {
+                let upstreamMessage = self.extractUpstreamErrorMessage(from: body)
+                if let retry = self.rectifiedBodyForRetry(
+                    errorMessage: upstreamMessage,
+                    body: body,
+                    originalBody: request.httpBody ?? Data(),
+                    rectifierRetried: rectifierRetried
+                ), let retryRequest = self.makeUpstreamRequest(provider: provider, path: path, body: retry.body, isStreaming: false) {
+                    logger.info("Rectifier applied \(retry.kind); retrying upstream request once")
+                    self.simpleForward(
+                        request: retryRequest,
+                        provider: provider,
+                        path: path,
+                        body: retry.body,
+                        connection: connection,
+                        originalRequest: originalRequest,
+                        startedAt: startedAt,
+                        rectifierRetried: true
+                    )
+                    return
+                }
+
                 // Enhance error message for common cases
                 let enhanced = self.enhanceUpstreamError(status: status, body: body, provider: provider)
                 self.recordRequest(method: originalRequest.method, path: originalRequest.path, providerName: provider.name, status: status, startedAt: startedAt, error: "Upstream returned HTTP \(status)")
@@ -326,12 +382,21 @@ final class ProxyServer {
         task.resume()
     }
 
-    private func streamForward(request: URLRequest, provider: Provider, connection: NWConnection, originalRequest: HTTPRequest, startedAt: Date) {
+    private func streamForward(
+        request: URLRequest,
+        provider: Provider,
+        path: String,
+        body: Data,
+        connection: NWConnection,
+        originalRequest: HTTPRequest,
+        startedAt: Date,
+        rectifierRetried: Bool = false
+    ) {
         Task { [weak self] in
             guard let self else { return }
 
             do {
-                let (bytes, response) = try await URLSession.shared.bytes(for: request)
+                let (bytes, response) = try await NetworkSessionManager.shared.session.bytes(for: request)
                 let httpResponse = response as? HTTPURLResponse
                 let status = httpResponse?.statusCode ?? 502
 
@@ -340,6 +405,27 @@ final class ProxyServer {
                     for try await byte in bytes {
                         body.append(byte)
                     }
+                    let upstreamMessage = self.extractUpstreamErrorMessage(from: body)
+                    if let retry = self.rectifiedBodyForRetry(
+                        errorMessage: upstreamMessage,
+                        body: body,
+                        originalBody: request.httpBody ?? Data(),
+                        rectifierRetried: rectifierRetried
+                    ), let retryRequest = self.makeUpstreamRequest(provider: provider, path: path, body: retry.body, isStreaming: true) {
+                        logger.info("Rectifier applied \(retry.kind); retrying streaming upstream request once")
+                        self.streamForward(
+                            request: retryRequest,
+                            provider: provider,
+                            path: path,
+                            body: retry.body,
+                            connection: connection,
+                            originalRequest: originalRequest,
+                            startedAt: startedAt,
+                            rectifierRetried: true
+                        )
+                        return
+                    }
+
                     let enhanced = self.enhanceUpstreamError(status: status, body: body, provider: provider)
                     self.recordRequest(method: originalRequest.method, path: originalRequest.path, providerName: provider.name, status: status, startedAt: startedAt, error: "Upstream returned HTTP \(status)")
                     self.sendResponse(connection: connection, status: status, body: enhanced, contentType: "application/json")
@@ -369,6 +455,163 @@ final class ProxyServer {
                 self.sendResponse(connection: connection, status: 502, body: self.errorBody(msg))
             }
         }
+    }
+
+    // MARK: - Rectifier
+
+    private func rectifiedBodyForRetry(
+        errorMessage: String?,
+        body _: Data,
+        originalBody: Data,
+        rectifierRetried: Bool
+    ) -> (body: Data, kind: String)? {
+        guard rectifierConfig.enabled, !rectifierRetried else { return nil }
+
+        if rectifierConfig.requestThinkingSignature,
+           shouldRectifyThinkingSignature(errorMessage),
+           let rectified = rectifyThinkingSignature(originalBody) {
+            return (rectified, "thinking_signature")
+        }
+
+        if rectifierConfig.requestThinkingBudget,
+           shouldRectifyThinkingBudget(errorMessage),
+           let rectified = rectifyThinkingBudget(originalBody) {
+            return (rectified, "thinking_budget")
+        }
+
+        return nil
+    }
+
+    private func shouldRectifyThinkingSignature(_ message: String?) -> Bool {
+        guard let message = message?.lowercased(), !message.isEmpty else { return false }
+
+        let indicators = [
+            "invalid signature in thinking block",
+            "thought signature not valid",
+            "thought signature is not valid",
+            "invalid thought signature",
+            "must start with a thinking block",
+            "expected `thinking` or `redacted_thinking`, but found `tool_use`",
+            "signature: field required",
+            "signature: extra inputs are not permitted",
+            "thinking block cannot be modified",
+            "redacted_thinking block cannot be modified",
+            "illegal request",
+            "invalid request",
+        ]
+
+        return indicators.contains { message.contains($0) }
+    }
+
+    private func shouldRectifyThinkingBudget(_ message: String?) -> Bool {
+        guard let message = message?.lowercased(), !message.isEmpty else { return false }
+        let hasBudgetTokens = message.contains("budget_tokens") || message.contains("budget tokens")
+        let hasThinking = message.contains("thinking")
+        let hasMinimumConstraint = message.contains("1024") ||
+            message.contains("greater than or equal") ||
+            message.contains("at least") ||
+            message.contains(">=")
+        return hasBudgetTokens && hasThinking && hasMinimumConstraint
+    }
+
+    private func rectifyThinkingSignature(_ body: Data) -> Data? {
+        guard var json = try? JSONSerialization.jsonObject(with: body) as? [String: Any] else { return nil }
+        var changed = false
+
+        if var messages = json["messages"] as? [[String: Any]] {
+            for messageIndex in messages.indices {
+                guard let content = messages[messageIndex]["content"] as? [[String: Any]] else { continue }
+                var nextContent: [[String: Any]] = []
+                var contentChanged = false
+
+                for var block in content {
+                    let type = block["type"] as? String
+                    if type == "thinking" || type == "redacted_thinking" {
+                        changed = true
+                        contentChanged = true
+                        continue
+                    }
+                    if block["signature"] != nil {
+                        block.removeValue(forKey: "signature")
+                        changed = true
+                        contentChanged = true
+                    }
+                    nextContent.append(block)
+                }
+
+                if contentChanged {
+                    messages[messageIndex]["content"] = nextContent
+                }
+            }
+            json["messages"] = messages
+        }
+
+        if shouldRemoveTopLevelThinking(from: json) {
+            json.removeValue(forKey: "thinking")
+            changed = true
+        }
+
+        guard changed else { return nil }
+        return try? JSONSerialization.data(withJSONObject: json)
+    }
+
+    private func shouldRemoveTopLevelThinking(from json: [String: Any]) -> Bool {
+        guard let thinking = json["thinking"] as? [String: Any],
+              thinking["type"] as? String == "enabled",
+              let messages = json["messages"] as? [[String: Any]],
+              let lastAssistant = messages.last(where: { ($0["role"] as? String) == "assistant" }),
+              let content = lastAssistant["content"] as? [[String: Any]],
+              let firstBlock = content.first else {
+            return false
+        }
+
+        let firstType = firstBlock["type"] as? String
+        guard firstType != "thinking", firstType != "redacted_thinking" else { return false }
+        return content.contains { ($0["type"] as? String) == "tool_use" }
+    }
+
+    private func rectifyThinkingBudget(_ body: Data) -> Data? {
+        guard var json = try? JSONSerialization.jsonObject(with: body) as? [String: Any] else { return nil }
+        if let thinking = json["thinking"] as? [String: Any],
+           thinking["type"] as? String == "adaptive" {
+            return nil
+        }
+
+        var changed = false
+        var thinking = (json["thinking"] as? [String: Any]) ?? [:]
+
+        if thinking["type"] as? String != "enabled" {
+            thinking["type"] = "enabled"
+            changed = true
+        }
+
+        if (thinking["budget_tokens"] as? Int) != 32_000 {
+            thinking["budget_tokens"] = 32_000
+            changed = true
+        }
+
+        json["thinking"] = thinking
+
+        let maxTokens = json["max_tokens"] as? Int
+        if maxTokens == nil || (maxTokens ?? 0) < 32_001 {
+            json["max_tokens"] = 64_000
+            changed = true
+        }
+
+        guard changed else { return nil }
+        return try? JSONSerialization.data(withJSONObject: json)
+    }
+
+    private func extractUpstreamErrorMessage(from body: Data) -> String? {
+        if let json = try? JSONSerialization.jsonObject(with: body) as? [String: Any] {
+            if let message = (json["error"] as? [String: Any])?["message"] as? String {
+                return message
+            }
+            if let message = json["message"] as? String {
+                return message
+            }
+        }
+        return String(data: body, encoding: .utf8)
     }
 
     private func recordRequest(

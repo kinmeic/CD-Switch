@@ -34,6 +34,16 @@ struct SettingsView: View {
                 }
             }
 
+            Section("Rectifier") {
+                Toggle("Enable Rectifier", isOn: $appState.rectifierEnabled)
+
+                Toggle("Thinking Signature Rectification", isOn: $appState.rectifyThinkingSignature)
+                    .disabled(!appState.rectifierEnabled)
+
+                Toggle("Thinking Budget Rectification", isOn: $appState.rectifyThinkingBudget)
+                    .disabled(!appState.rectifierEnabled)
+            }
+
             Section("Claude Desktop") {
                 TextField("Config Directory", text: $appState.claudeDesktopPath)
                     .textFieldStyle(.roundedBorder)
@@ -77,6 +87,30 @@ struct SettingsView: View {
                     }
                     .disabled(newClaudeModelId.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
                 }
+            }
+
+            Section("Outbound Proxy") {
+                HStack {
+                    Text("Address:")
+                    Spacer()
+                    TextField("", text: $appState.outboundProxyURL)
+                        .textFieldStyle(.roundedBorder)
+                        .font(.system(.body, design: .monospaced))
+                        .multilineTextAlignment(.trailing)
+                }
+
+                if let message = appState.outboundProxyValidationMessage {
+                    Label(message, systemImage: "exclamationmark.triangle")
+                        .font(.caption)
+                        .foregroundColor(.orange)
+                }
+
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("Used by CD-Switch outbound requests. Leave empty for direct connection.")
+                    Text(verbatim: "Examples: http://127.0.0.1:7890, socks5://127.0.0.1:1080")
+                }
+                .font(.caption)
+                .foregroundColor(.secondary)
             }
         }
         .formStyle(.grouped)
