@@ -133,10 +133,11 @@ final class AppState: ObservableObject {
         if let idx = providers.firstIndex(where: { $0.id == provider.id }) {
             var normalized = provider
             normalized.modelRoutes = normalized.modelRoutes.map(\.normalized)
+            let isActiveProvider = normalized.id == activeProviderId
             providers[idx] = normalized
             objectWillChange.send()
-            if proxyServer.running {
-                proxyServer.updateProvider(normalized)
+            if proxyServer.running, isActiveProvider {
+                syncRunningProxy(provider: normalized, showRestartNotice: true)
             }
         }
     }
@@ -150,7 +151,11 @@ final class AppState: ObservableObject {
     }
 
     func setActive(_ provider: Provider) {
+        guard activeProviderId != provider.id else { return }
         activeProviderId = provider.id
+        if proxyServer.running, let activeProvider {
+            syncRunningProxy(provider: activeProvider, showRestartNotice: true)
+        }
     }
 
     // MARK: - Proxy
@@ -218,6 +223,39 @@ final class AppState: ObservableObject {
 
         DispatchQueue.main.async { [weak self] in
             self?.startProxy()
+        }
+    }
+
+    private func syncRunningProxy(provider: Provider, showRestartNotice: Bool) {
+        let preflightErrors = preflightErrors(provider: provider)
+        guard preflightErrors.isEmpty else {
+            proxyServer.lastError = preflightErrors.joined(separator: "\n")
+            logger.error("Preflight failed while updating running proxy: \(preflightErrors.joined(separator: "; "))")
+            return
+        }
+
+        do {
+            try ClaudeDesktopManager.applyProvider(provider, port: proxyPort, gatewayToken: gatewayToken)
+            proxyServer.updateProvider(provider)
+            logger.info("Updated running proxy provider and Claude Desktop config")
+            if showRestartNotice {
+                showClaudeDesktopRestartNotice()
+            }
+        } catch {
+            proxyServer.lastError = "Failed to apply Claude Desktop config: \(error.localizedDescription)"
+            logger.error("Failed to apply config while updating running proxy: \(error.localizedDescription)")
+        }
+    }
+
+    private func showClaudeDesktopRestartNotice() {
+        DispatchQueue.main.async {
+            let alert = NSAlert()
+            alert.messageText = "Claude Desktop Restart Required"
+            alert.informativeText = "Restart Claude Desktop for changes to take effect."
+            alert.alertStyle = .informational
+            alert.addButton(withTitle: "OK")
+            NSApp.activate(ignoringOtherApps: true)
+            alert.runModal()
         }
     }
 

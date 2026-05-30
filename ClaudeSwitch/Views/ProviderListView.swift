@@ -12,10 +12,15 @@ struct ProviderListView: View {
                 List(selection: $selectedId) {
                     ForEach(appState.providers) { provider in
                         ProviderRow(provider: provider, isActive: provider.id == appState.activeProviderId)
+                            .contentShape(Rectangle())
+                            .onTapGesture {
+                                selectedId = provider.id
+                            }
                             .tag(provider.id)
                             .contextMenu {
                                 Button("Duplicate") {
-                                    _ = appState.duplicateProvider(provider)
+                                    let copy = appState.duplicateProvider(provider)
+                                    selectedId = copy.id
                                 }
                                 Button("Delete") {
                                     appState.removeProvider(provider)
@@ -54,9 +59,27 @@ struct ProviderListView: View {
                     .frame(maxWidth: .infinity)
             }
         }
+        .onAppear {
+            selectInitialProviderIfNeeded()
+        }
+        .onChange(of: appState.providers) { _ in
+            reconcileSelection()
+        }
         .sheet(isPresented: $showAddSheet) {
             AddProviderSheet(isPresented: $showAddSheet).environmentObject(appState)
         }
+    }
+
+    private func selectInitialProviderIfNeeded() {
+        guard selectedId == nil else { return }
+        selectedId = appState.activeProviderId ?? appState.providers.first?.id
+    }
+
+    private func reconcileSelection() {
+        if let selectedId, appState.providers.contains(where: { $0.id == selectedId }) {
+            return
+        }
+        selectedId = appState.activeProviderId ?? appState.providers.first?.id
     }
 }
 

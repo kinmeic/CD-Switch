@@ -47,9 +47,6 @@ struct MenuBarMenu: View {
 
     private func selectProvider(_ provider: Provider) {
         appState.setActive(provider)
-        if appState.proxyRunning {
-            appState.proxyServer.updateProvider(provider)
-        }
     }
 
     private func showMainWindow() {
