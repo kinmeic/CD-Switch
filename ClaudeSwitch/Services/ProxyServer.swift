@@ -193,15 +193,27 @@ final class ProxyServer {
         if method == "GET" && (path == "/health" || path == "/claude-desktop/health") {
             recordRequest(method: method, path: path, providerName: nil, status: 200, startedAt: startedAt)
             sendResponse(connection: connection, status: 200, body: Data("{\"status\":\"ok\"}".utf8))
+        } else if method == "HEAD" && isClaudeDesktopGatewayPath(path) {
+            recordRequest(method: method, path: path, providerName: nil, status: 200, startedAt: startedAt)
+            sendResponse(connection: connection, status: 200, body: Data(), includeBody: false)
         } else if method == "GET" && path.hasPrefix("/claude-desktop/v1/models") {
             handleModels(request: request, connection: connection, startedAt: startedAt)
-        } else if method == "POST" && path.hasPrefix("/claude-desktop/v1/messages") {
+        } else if method == "POST" && path == "/claude-desktop/v1/messages/count_tokens" {
+            handleCountTokens(request: request, connection: connection, startedAt: startedAt)
+        } else if method == "POST" && path == "/claude-desktop/v1/messages" {
             handleMessages(request: request, connection: connection, startedAt: startedAt)
         } else {
             logger.warning("Unhandled: \(method) \(path)")
             recordRequest(method: method, path: path, providerName: nil, status: 404, startedAt: startedAt, error: "Not Found")
             sendResponse(connection: connection, status: 404, body: errorBody("Not Found"))
         }
+    }
+
+    private func isClaudeDesktopGatewayPath(_ path: String) -> Bool {
+        path == "/claude-desktop" ||
+            path == "/claude-desktop/" ||
+            path == "/cluade-desktop" ||
+            path == "/cluade-desktop/"
     }
 
     // MARK: - Routes
@@ -256,15 +268,7 @@ final class ProxyServer {
             return
         }
 
-        // Map model route ID to upstream model
-        var bodyData = request.body
-        if var json = try? JSONSerialization.jsonObject(with: bodyData) as? [String: Any],
-           let modelId = json["model"] as? String {
-            if let route = provider.modelRoutes.first(where: { $0.routeId == modelId }) {
-                json["model"] = route.upstreamModel
-                bodyData = try! JSONSerialization.data(withJSONObject: json)
-            }
-        }
+        let bodyData = requestBodyByMappingModelRoute(request.body, provider: provider)
 
         // Forward to upstream
         let isStreaming = (try? JSONSerialization.jsonObject(with: request.body) as? [String: Any])
@@ -279,6 +283,42 @@ final class ProxyServer {
             originalRequest: request,
             startedAt: startedAt
         )
+    }
+
+    private func handleCountTokens(request: HTTPRequest, connection: NWConnection, startedAt: Date) {
+        guard validateAuth(request) else {
+            recordRequest(method: request.method, path: request.path, providerName: nil, status: 401, startedAt: startedAt, error: "Unauthorized")
+            sendResponse(connection: connection, status: 401, body: errorBody("Unauthorized"))
+            return
+        }
+
+        guard let provider = activeProvider else {
+            recordRequest(method: request.method, path: request.path, providerName: nil, status: 503, startedAt: startedAt, error: "No active provider")
+            sendResponse(connection: connection, status: 503, body: errorBody("No active provider"))
+            return
+        }
+
+        let bodyData = requestBodyByMappingModelRoute(request.body, provider: provider)
+        forwardToUpstream(
+            provider: provider,
+            path: "/v1/messages/count_tokens",
+            body: bodyData,
+            isStreaming: false,
+            connection: connection,
+            originalRequest: request,
+            startedAt: startedAt
+        )
+    }
+
+    private func requestBodyByMappingModelRoute(_ body: Data, provider: Provider) -> Data {
+        guard var json = try? JSONSerialization.jsonObject(with: body) as? [String: Any],
+              let modelId = json["model"] as? String,
+              let route = provider.modelRoutes.first(where: { $0.routeId == modelId }) else {
+            return body
+        }
+
+        json["model"] = route.upstreamModel
+        return (try? JSONSerialization.data(withJSONObject: json)) ?? body
     }
 
     // MARK: - Upstream Forwarding
@@ -715,11 +755,13 @@ final class ProxyServer {
 
     // MARK: - Response Sending
 
-    private func sendResponse(connection: NWConnection, status: Int, body: Data, contentType: String = "application/json") {
+    private func sendResponse(connection: NWConnection, status: Int, body: Data, contentType: String = "application/json", includeBody: Bool = true) {
         let statusText = statusText(for: status)
         let header = "HTTP/1.1 \(status) \(statusText)\r\nContent-Type: \(contentType)\r\nContent-Length: \(body.count)\r\nConnection: close\r\n\r\n"
         var responseData = Data(header.utf8)
-        responseData.append(body)
+        if includeBody {
+            responseData.append(body)
+        }
 
         connection.send(content: responseData, completion: .contentProcessed { _ in
             connection.cancel()
