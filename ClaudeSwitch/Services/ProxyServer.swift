@@ -410,9 +410,15 @@ final class ProxyServer {
                     return
                 }
 
-                // Enhance error message for common cases
                 let enhanced = self.enhanceUpstreamError(status: status, body: body, provider: provider)
-                self.recordRequest(method: originalRequest.method, path: originalRequest.path, providerName: provider.name, status: status, startedAt: startedAt, error: "Upstream returned HTTP \(status)")
+                self.recordRequest(
+                    method: originalRequest.method,
+                    path: originalRequest.path,
+                    providerName: provider.name,
+                    status: status,
+                    startedAt: startedAt,
+                    error: self.upstreamErrorSummary(status: status, message: upstreamMessage)
+                )
                 self.sendResponse(connection: connection, status: status, body: enhanced, contentType: "application/json")
             } else {
                 self.recordRequest(method: originalRequest.method, path: originalRequest.path, providerName: provider.name, status: status, startedAt: startedAt)
@@ -467,7 +473,14 @@ final class ProxyServer {
                     }
 
                     let enhanced = self.enhanceUpstreamError(status: status, body: body, provider: provider)
-                    self.recordRequest(method: originalRequest.method, path: originalRequest.path, providerName: provider.name, status: status, startedAt: startedAt, error: "Upstream returned HTTP \(status)")
+                    self.recordRequest(
+                        method: originalRequest.method,
+                        path: originalRequest.path,
+                        providerName: provider.name,
+                        status: status,
+                        startedAt: startedAt,
+                        error: self.upstreamErrorSummary(status: status, message: upstreamMessage)
+                    )
                     self.sendResponse(connection: connection, status: status, body: enhanced, contentType: "application/json")
                     return
                 }
@@ -647,11 +660,22 @@ final class ProxyServer {
             if let message = (json["error"] as? [String: Any])?["message"] as? String {
                 return message
             }
+            if let detail = (json["error"] as? [String: Any])?["detail"] as? String {
+                return detail
+            }
             if let message = json["message"] as? String {
                 return message
             }
+            if let detail = json["detail"] as? String {
+                return detail
+            }
+            if let message = (json["base_resp"] as? [String: Any])?["status_msg"] as? String {
+                return message
+            }
         }
-        return String(data: body, encoding: .utf8)
+        let text = String(data: body, encoding: .utf8)?
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+        return text?.isEmpty == false ? text : nil
     }
 
     private func recordRequest(
@@ -683,26 +707,47 @@ final class ProxyServer {
     // MARK: - Error Enhancement
 
     private func enhanceUpstreamError(status: Int, body: Data, provider: Provider) -> Data {
-        var errorJson: [String: Any] = [:]
-
-        // Try to parse upstream error
-        if let upstream = try? JSONSerialization.jsonObject(with: body) as? [String: Any] {
-            errorJson = upstream
-        }
-
-        let upstreamMsg = (errorJson["error"] as? [String: Any])?["message"] as? String
+        let upstreamBody = parseJSONBody(body) ?? String(data: body, encoding: .utf8) ?? ""
+        let errorJson = upstreamBody as? [String: Any] ?? [:]
+        let upstreamError = errorJson["error"] as? [String: Any]
+        let baseResp = errorJson["base_resp"] as? [String: Any]
+        let upstreamMsg = extractUpstreamErrorMessage(from: body)
         let detail = upstreamMsg.map { ": \($0)" } ?? ""
 
+        var error: [String: Any] = [
+            "message": "Upstream provider '\(provider.name)' returned HTTP \(status)\(detail)",
+            "type": upstreamError?["type"] as? String ?? "upstream_error",
+            "provider": provider.name,
+            "upstream_status": status,
+            "upstream_body": upstreamBody,
+        ]
+
+        if let code = upstreamError?["code"] ?? baseResp?["status_code"] {
+            error["code"] = code
+        } else if status == 400 {
+            error["code"] = "claude_switch_upstream_400"
+        }
+
+        if let param = upstreamError?["param"] {
+            error["param"] = param
+        }
+
         let enhanced: [String: Any] = [
-            "error": [
-                "message": "Upstream provider '\(provider.name)' returned HTTP \(status)\(detail)",
-                "type": "upstream_error",
-                "provider": provider.name,
-                "upstream_status": status,
-            ] as [String: Any]
+            "error": error
         ]
 
         return (try? JSONSerialization.data(withJSONObject: enhanced)) ?? body
+    }
+
+    private func parseJSONBody(_ body: Data) -> Any? {
+        try? JSONSerialization.jsonObject(with: body)
+    }
+
+    private func upstreamErrorSummary(status: Int, message: String?) -> String {
+        guard let message, !message.isEmpty else {
+            return "Upstream returned HTTP \(status)"
+        }
+        return "Upstream returned HTTP \(status): \(message)"
     }
 
     // MARK: - Auth
