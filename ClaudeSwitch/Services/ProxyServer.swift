@@ -298,16 +298,81 @@ final class ProxyServer {
             return
         }
 
+        let localEstimate = estimateTokenCount(request.body)
         let bodyData = requestBodyByMappingModelRoute(request.body, provider: provider)
-        forwardToUpstream(
-            provider: provider,
-            path: "/v1/messages/count_tokens",
-            body: bodyData,
-            isStreaming: false,
-            connection: connection,
-            originalRequest: request,
-            startedAt: startedAt
-        )
+
+        guard let urlRequest = makeUpstreamRequest(provider: provider, path: "/v1/messages/count_tokens", body: bodyData, isStreaming: false) else {
+            let resp = Data("{\"input_tokens\":\(localEstimate)}".utf8)
+            recordRequest(method: request.method, path: request.path, providerName: provider.name, status: 200, startedAt: startedAt)
+            sendResponse(connection: connection, status: 200, body: resp)
+            return
+        }
+
+        let task = NetworkSessionManager.shared.session.dataTask(with: urlRequest) { [weak self] data, response, _ in
+            guard let self else { return }
+
+            var upstreamTokens = 0
+            if let data,
+               let http = response as? HTTPURLResponse,
+               http.statusCode < 400,
+               let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+               let tokens = json["input_tokens"] as? Int {
+                upstreamTokens = tokens
+            }
+
+            let finalTokens = max(upstreamTokens, localEstimate)
+            let resp = Data("{\"input_tokens\":\(finalTokens)}".utf8)
+            self.recordRequest(method: request.method, path: request.path, providerName: provider.name, status: 200, startedAt: startedAt)
+            self.sendResponse(connection: connection, status: 200, body: resp)
+        }
+        task.resume()
+    }
+
+    private func estimateTokenCount(_ body: Data) -> Int {
+        guard let json = try? JSONSerialization.jsonObject(with: body) as? [String: Any] else { return 0 }
+        var text = ""
+
+        if let messages = json["messages"] as? [[String: Any]] {
+            for msg in messages {
+                if let content = msg["content"] as? String {
+                    text += content
+                } else if let blocks = msg["content"] as? [[String: Any]] {
+                    for block in blocks {
+                        if let t = block["text"] as? String { text += t }
+                    }
+                }
+            }
+        }
+
+        if let system = json["system"] as? String {
+            text += system
+        } else if let blocks = json["system"] as? [[String: Any]] {
+            for block in blocks {
+                if let t = block["text"] as? String { text += t }
+            }
+        }
+
+        if let tools = json["tools"] as? [[String: Any]],
+           let data = try? JSONSerialization.data(withJSONObject: tools),
+           let str = String(data: data, encoding: .utf8) {
+            text += str
+        }
+
+        var cjk: Double = 0, other: Double = 0
+        for scalar in text.unicodeScalars {
+            let v = scalar.value
+            if (0x4E00...0x9FFF).contains(v) || (0x3400...0x4DBF).contains(v) ||
+               (0xF900...0xFAFF).contains(v) || (0x3000...0x303F).contains(v) ||
+               (0x3040...0x309F).contains(v) || (0x30A0...0x30FF).contains(v) ||
+               (0xAC00...0xD7AF).contains(v) {
+                cjk += 1
+            } else if !scalar.properties.isDefaultIgnorableCodePoint {
+                other += 1
+            }
+        }
+
+        let tokens = cjk / 1.5 + other / 4.0 + 4
+        return max(1, Int(tokens.rounded()))
     }
 
     private func requestBodyByMappingModelRoute(_ body: Data, provider: Provider) -> Data {
