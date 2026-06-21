@@ -231,7 +231,7 @@ final class ProxyServer {
             return
         }
 
-        let models = provider.modelRoutes.map { route -> [String: Any] in
+        let models = ModelRouteResolver.resolveRoutes(for: provider).map { route -> [String: Any] in
             var model: [String: Any] = [
                 "type": "model",
                 "id": route.routeId,
@@ -376,14 +376,7 @@ final class ProxyServer {
     }
 
     private func requestBodyByMappingModelRoute(_ body: Data, provider: Provider) -> Data {
-        guard var json = try? JSONSerialization.jsonObject(with: body) as? [String: Any],
-              let modelId = json["model"] as? String,
-              let route = provider.modelRoutes.first(where: { $0.routeId == modelId }) else {
-            return body
-        }
-
-        json["model"] = route.upstreamModel
-        return (try? JSONSerialization.data(withJSONObject: json)) ?? body
+        ModelRouteResolver.mapRequestModel(body, provider: provider)
     }
 
     // MARK: - Upstream Forwarding

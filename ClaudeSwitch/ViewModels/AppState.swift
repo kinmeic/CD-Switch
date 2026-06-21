@@ -99,13 +99,13 @@ final class AppState: ObservableObject {
 
     var isApplied: Bool {
         guard activeProvider != nil else { return false }
-        // Check if the profile file exists and matches
-        let profilePath = "\(AppEnvironment.configLibraryPath)/\(AppEnvironment.profileId).json"
-        guard FileManager.default.fileExists(atPath: profilePath) else { return false }
-        guard let data = FileManager.default.contents(atPath: profilePath),
-              let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
-              let baseUrl = json["inferenceGatewayBaseUrl"] as? String else { return false }
-        return baseUrl.contains(":\(proxyPort)")
+        let status = claudeDesktopStatus
+        return status.configured && !status.baseURLDrift
+    }
+
+    /// Claude Desktop profile 的漂移状态：检测被其他工具覆盖、模型名失效、路由缺失等。
+    var claudeDesktopStatus: ClaudeDesktopManager.Status {
+        ClaudeDesktopManager.status(port: proxyPort, activeProvider: activeProvider)
     }
 
     private init() {

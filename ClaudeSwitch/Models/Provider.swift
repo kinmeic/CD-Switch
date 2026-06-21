@@ -1,10 +1,13 @@
 import Foundation
 
 struct ModelRoute: Codable, Identifiable, Equatable {
+    // 与 ModelRouteResolver.defaultClaudeModelIds 保持一致：默认暴露的安全路由目录。
+    // fable 置末，仅作 UI 默认值；借用安全名时按 sonnet→opus→haiku 顺序分配。
     static let defaultClaudeModelIds = [
         "claude-sonnet-4-6",
-        "claude-opus-4-7",
+        "claude-opus-4-8",
         "claude-haiku-4-5",
+        "claude-fable-5",
     ]
 
     var id = UUID()
@@ -17,11 +20,9 @@ struct ModelRoute: Codable, Identifiable, Equatable {
         case routeId, upstreamModel, labelOverride, supports1m
     }
 
-    static let defaultRoutes: [ModelRoute] = [
-        ModelRoute(routeId: defaultClaudeModelIds[0], upstreamModel: "", labelOverride: nil, supports1m: true),
-        ModelRoute(routeId: defaultClaudeModelIds[1], upstreamModel: "", labelOverride: nil, supports1m: true),
-        ModelRoute(routeId: defaultClaudeModelIds[2], upstreamModel: "", labelOverride: nil, supports1m: true),
-    ]
+    static let defaultRoutes: [ModelRoute] = defaultClaudeModelIds.map {
+        ModelRoute(routeId: $0, upstreamModel: "", labelOverride: nil, supports1m: true)
+    }
 
     var normalized: ModelRoute {
         var route = self

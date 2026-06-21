@@ -5,6 +5,60 @@ private let logger = Logger(subsystem: "com.claude.switch", category: "claude-de
 
 enum ClaudeDesktopManager {
 
+    // MARK: - Status / Drift Detection
+
+    /// Claude Desktop profile 的当前状态，用于检测漂移（被其他工具覆盖、模型名失效等）。
+    struct Status {
+        /// profile 文件是否存在
+        let configured: Bool
+        /// profile 的 inferenceGatewayBaseUrl 不含当前端口（被覆盖或端口已变）
+        let baseURLDrift: Bool
+        /// profile 的 inferenceModels 含非安全模型名（会触发 fail-all 拒收整组）
+        let staleRawModels: Bool
+        /// 当前 provider 解析后无可用路由
+        let missingRouteMappings: Bool
+    }
+
+    static func status(port: Int, activeProvider: Provider?) -> Status {
+        let paths = resolvePaths()
+        let configured = FileManager.default.fileExists(atPath: paths.profilePath)
+
+        var baseURLDrift = false
+        var staleRawModels = false
+
+        if let data = FileManager.default.contents(atPath: paths.profilePath),
+           let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any] {
+            if let baseUrl = json["inferenceGatewayBaseUrl"] as? String,
+               !baseUrl.contains(":\(port)") {
+                baseURLDrift = true
+            }
+            if let models = json["inferenceModels"] as? [Any] {
+                staleRawModels = models.contains { item in
+                    let name: String? = {
+                        if let s = item as? String { return s }
+                        if let obj = item as? [String: Any] { return obj["name"] as? String }
+                        return nil
+                    }()
+                    return name.map { !ModelRouteResolver.isClaudeSafeModelId($0) } ?? false
+                }
+            }
+        }
+
+        let missingRouteMappings: Bool
+        if let provider = activeProvider, !provider.isOfficial {
+            missingRouteMappings = ModelRouteResolver.resolveRoutes(for: provider).isEmpty
+        } else {
+            missingRouteMappings = false
+        }
+
+        return Status(
+            configured: configured,
+            baseURLDrift: baseURLDrift,
+            staleRawModels: staleRawModels,
+            missingRouteMappings: missingRouteMappings
+        )
+    }
+
     // MARK: - Apply Provider
 
     static func applyProvider(_ provider: Provider, port: Int, gatewayToken: String) throws {
@@ -78,12 +132,14 @@ enum ClaudeDesktopManager {
             "inferenceProvider": "gateway",
         ]
 
-        let models: [Any] = provider.modelRoutes.map { route in
-            let hasLabel = route.labelOverride?.isEmpty == false
-            if hasLabel || route.supports1m {
+        // 用解析后的安全路由写入：不安全 routeId 自动借用安全名，真实上游名落到 labelOverride，
+        // 避免触发 Claude Desktop 1.12603.1+ 的 fail-all 校验拒收整组模型。
+        let routes = ModelRouteResolver.resolveRoutes(for: provider)
+        let models: [Any] = routes.map { route in
+            if route.labelOverride != nil || route.supports1m {
                 var entry: [String: Any] = ["name": route.routeId]
-                if hasLabel {
-                    entry["labelOverride"] = route.labelOverride
+                if let label = route.labelOverride {
+                    entry["labelOverride"] = label
                 }
                 if route.supports1m {
                     entry["supports1m"] = true

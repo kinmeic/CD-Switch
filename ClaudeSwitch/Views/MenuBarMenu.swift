@@ -59,6 +59,14 @@ struct MenuBarMenu: View {
             NSApp.activate(ignoringOtherApps: true)
         } else {
             openWindow(id: "main")
+            // openWindow 异步创建窗口，需在下一轮激活并置前，
+            // 否则菜单栏 accessory App 的新窗口会出现在后台而不进入前台。
+            DispatchQueue.main.async {
+                NSApp.activate(ignoringOtherApps: true)
+                NSApp.windows.first {
+                    !($0 is NSPanel) && $0.identifier?.rawValue == "main"
+                }?.makeKeyAndOrderFront(nil)
+            }
         }
     }
 }

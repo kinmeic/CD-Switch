@@ -15,6 +15,7 @@ swift_files = {
   "AppState" => "ClaudeSwitch/ViewModels/AppState.swift",
   "ProxyServer" => "ClaudeSwitch/Services/ProxyServer.swift",
   "ClaudeDesktopManager" => "ClaudeSwitch/Services/ClaudeDesktopManager.swift",
+  "ModelRouteResolver" => "ClaudeSwitch/Services/ModelRouteResolver.swift",
   "PresetProviders" => "ClaudeSwitch/Services/PresetProviders.swift",
   "MainWindow" => "ClaudeSwitch/Views/MainWindow.swift",
   "MenuBarMenu" => "ClaudeSwitch/Views/MenuBarMenu.swift",
@@ -106,7 +107,7 @@ groups_section += "		#{group_viewmodels} /* ViewModels */ = {\n			isa = PBXGroup
 groups_section += "		#{group_views} /* Views */ = {\n			isa = PBXGroup;\n			children = (\n				#{file_refs["MainWindow"]} /* MainWindow.swift */,\n				#{file_refs["MenuBarMenu"]} /* MenuBarMenu.swift */,\n				#{file_refs["DetailView"]} /* DetailView.swift */,\n				#{file_refs["ConnectionStatusView"]} /* ConnectionStatusView.swift */,\n				#{file_refs["ProviderListView"]} /* ProviderListView.swift */,\n				#{file_refs["SettingsView"]} /* SettingsView.swift */,\n			);\n			path = Views;\n			sourceTree = \"<group>\";\n		};\n"
 
 # Services group
-groups_section += "		#{group_services} /* Services */ = {\n			isa = PBXGroup;\n			children = (\n				#{file_refs["ProxyServer"]} /* ProxyServer.swift */,\n				#{file_refs["ClaudeDesktopManager"]} /* ClaudeDesktopManager.swift */,\n				#{file_refs["PresetProviders"]} /* PresetProviders.swift */,\n			);\n			path = Services;\n			sourceTree = \"<group>\";\n		};\n"
+groups_section += "		#{group_services} /* Services */ = {\n			isa = PBXGroup;\n			children = (\n				#{file_refs["ProxyServer"]} /* ProxyServer.swift */,\n				#{file_refs["ClaudeDesktopManager"]} /* ClaudeDesktopManager.swift */,\n				#{file_refs["ModelRouteResolver"]} /* ModelRouteResolver.swift */,\n				#{file_refs["PresetProviders"]} /* PresetProviders.swift */,\n			);\n			path = Services;\n			sourceTree = \"<group>\";\n		};\n"
 
 # Source group (main)
 groups_section += "		#{group_source} /* ClaudeSwitch */ = {\n			isa = PBXGroup;\n			children = (\n				#{file_refs["ClaudeSwitchApp"]} /* ClaudeSwitchApp.swift */,\n				#{file_refs["AppEnvironment"]} /* AppEnvironment.swift */,\n				#{group_models} /* Models */,\n				#{group_viewmodels} /* ViewModels */,\n				#{group_views} /* Views */,\n				#{group_services} /* Services */,\n				#{file_refs["Assets"]} /* Assets.xcassets */,\n				#{file_refs["Info.plist"]} /* Info.plist */,\n				#{file_refs["Entitlements"]} /* ClaudeSwitch.entitlements */,\n			);\n			path = ClaudeSwitch;\n			sourceTree = \"<group>\";\n		};\n"
@@ -199,7 +200,7 @@ target_settings = {
   "INFOPLIST_KEY_NSHumanReadableCopyright" => "",
   "LD_RUNPATH_SEARCH_PATHS" => ["$(inherited)", "@executable_path/../Frameworks"],
   "MACOSX_DEPLOYMENT_TARGET" => "13.0",
-  "MARKETING_VERSION" => "1.0.9",
+  "MARKETING_VERSION" => "1.0.10",
   "PRODUCT_BUNDLE_IDENTIFIER" => "com.claude.switch",
   "PRODUCT_NAME" => "$(TARGET_NAME)",
   "SWIFT_EMIT_LOC_STRINGS" => "YES",
