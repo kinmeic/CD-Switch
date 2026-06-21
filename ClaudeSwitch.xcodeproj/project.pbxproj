@@ -7,128 +7,128 @@
 		objects = {
 
 	/* Begin PBXBuildFile section */
-		D55B06963A22E3B3044390D9 /* ClaudeSwitchApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 438FFF016277B824CC465C19 /* ClaudeSwitchApp.swift */; };
-		FA05B19D52DF65900D79AE2C /* AppEnvironment.swift in Sources */ = {isa = PBXBuildFile; fileRef = 87EB1A4896B422E95061279C /* AppEnvironment.swift */; };
-		57B6268AE24AF116B2A1B2B9 /* Provider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B4992B9D197709086E67592 /* Provider.swift */; };
-		D196C36B8F616BA469B34494 /* AppState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 579A4440744F1A00BA1DED58 /* AppState.swift */; };
-		4BF43D7FB54D1614797D2423 /* ProxyServer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 96F19883B9F0E6075540F8BF /* ProxyServer.swift */; };
-		0C7261CE9E00646B64C66B53 /* ClaudeDesktopManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2DC6424D3C279114C5134D78 /* ClaudeDesktopManager.swift */; };
-		D50152148F64ED6627AAFF68 /* ModelRouteResolver.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB21BAF7713E05D993029A97 /* ModelRouteResolver.swift */; };
-		E32911C6205EE8967D06ED37 /* PresetProviders.swift in Sources */ = {isa = PBXBuildFile; fileRef = 19BB0BC545756A6053F0E8CC /* PresetProviders.swift */; };
-		08915E5AE956DB1262EEC278 /* MainWindow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 59FC64119735930B9478999A /* MainWindow.swift */; };
-		20CB40BA48190D92AD296447 /* MenuBarMenu.swift in Sources */ = {isa = PBXBuildFile; fileRef = DE8D7A55D4FA226BCC16BCD6 /* MenuBarMenu.swift */; };
-		6A2C3DA8D04C39916ED12A51 /* DetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7DFC8F1D1E5852F4FAF90AD9 /* DetailView.swift */; };
-		69C5E28E1D3A2974F8EAFDD3 /* ConnectionStatusView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4A866047D96B62A6E17BF18D /* ConnectionStatusView.swift */; };
-		856C688712FB2B0801C46D1E /* ProviderListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 563BEF1796DFBB71607DDD1A /* ProviderListView.swift */; };
-		E4864D619C0A97A79D2A0BA8 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A172EA04B5636E35B4CC6B40 /* SettingsView.swift */; };
-		A859421E437B4F1C98258A3C /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 67D35199E97490C44A31FB89 /* Assets.xcassets */; };
+		627E9FEC536CC622EE57F3A7 /* ClaudeSwitchApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 96C0FF1E76D609E9D576BDD9 /* ClaudeSwitchApp.swift */; };
+		5FAF815AF3AD536A8E0CD0EE /* AppEnvironment.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9DE6E3F6E2F31CE51FF29A8 /* AppEnvironment.swift */; };
+		6F63C519CC44B13799429931 /* Provider.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC0353EECE9336A9EAE23069 /* Provider.swift */; };
+		8557202705D1592718BD12E6 /* AppState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 544281D5BA0FFCAF96D205D1 /* AppState.swift */; };
+		C993FDD7574387810D32E67D /* ProxyServer.swift in Sources */ = {isa = PBXBuildFile; fileRef = C109EACAA75A57B5136A898C /* ProxyServer.swift */; };
+		9A94C8691C5F40C2D4E7E434 /* ClaudeDesktopManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = F1A2A6598E44C9B9336B5FA0 /* ClaudeDesktopManager.swift */; };
+		C1EA897DE0C8B5F2E7AD72F9 /* ModelRouteResolver.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5C4C5AEB0F013358421AE703 /* ModelRouteResolver.swift */; };
+		3C4D38A4F7E7EFD762C14953 /* PresetProviders.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6E4520280F235CC66F2199C9 /* PresetProviders.swift */; };
+		FC99E303CB523A4EE89649BA /* MainWindow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9D795D9F1B140AD2C993EF9D /* MainWindow.swift */; };
+		BD7F40E3C9D887F64EBF5D93 /* MenuBarMenu.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7854DB7406F840C394EAD56C /* MenuBarMenu.swift */; };
+		46437CAE39F220BAAE5626CA /* DetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 57B32C7047EB177F6C9C69C3 /* DetailView.swift */; };
+		A5B41ADEFE5A66A8D697F2FF /* ConnectionStatusView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F27CF315C4226F9EC9B74283 /* ConnectionStatusView.swift */; };
+		9440496FA0F35A7F01EB5A80 /* ProviderListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 84ECCB796DF04D16C60189E1 /* ProviderListView.swift */; };
+		DA794C8F0105F66C3BD78C0D /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 226CDFB9A695ADD8A866B6A8 /* SettingsView.swift */; };
+		84B5131C6FBB764681DBA82F /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 2F54427305ECCD449BBCDCC8 /* Assets.xcassets */; };
 	/* End PBXBuildFile section */
 
 	/* Begin PBXFileReference section */
-		438FFF016277B824CC465C19 /* ClaudeSwitchApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ClaudeSwitchApp.swift"; sourceTree = "<group>"; };
-		87EB1A4896B422E95061279C /* AppEnvironment.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "AppEnvironment.swift"; sourceTree = "<group>"; };
-		3B4992B9D197709086E67592 /* Provider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Provider.swift"; sourceTree = "<group>"; };
-		579A4440744F1A00BA1DED58 /* AppState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "AppState.swift"; sourceTree = "<group>"; };
-		96F19883B9F0E6075540F8BF /* ProxyServer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ProxyServer.swift"; sourceTree = "<group>"; };
-		2DC6424D3C279114C5134D78 /* ClaudeDesktopManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ClaudeDesktopManager.swift"; sourceTree = "<group>"; };
-		BB21BAF7713E05D993029A97 /* ModelRouteResolver.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ModelRouteResolver.swift"; sourceTree = "<group>"; };
-		19BB0BC545756A6053F0E8CC /* PresetProviders.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "PresetProviders.swift"; sourceTree = "<group>"; };
-		59FC64119735930B9478999A /* MainWindow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "MainWindow.swift"; sourceTree = "<group>"; };
-		DE8D7A55D4FA226BCC16BCD6 /* MenuBarMenu.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "MenuBarMenu.swift"; sourceTree = "<group>"; };
-		7DFC8F1D1E5852F4FAF90AD9 /* DetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "DetailView.swift"; sourceTree = "<group>"; };
-		4A866047D96B62A6E17BF18D /* ConnectionStatusView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ConnectionStatusView.swift"; sourceTree = "<group>"; };
-		563BEF1796DFBB71607DDD1A /* ProviderListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ProviderListView.swift"; sourceTree = "<group>"; };
-		A172EA04B5636E35B4CC6B40 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "SettingsView.swift"; sourceTree = "<group>"; };
-		61C6F6E34436256F61B219E8 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		C54903F6530B9319034A67FC /* ClaudeSwitch.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = ClaudeSwitch.entitlements; sourceTree = "<group>"; };
-		67D35199E97490C44A31FB89 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		96C0FF1E76D609E9D576BDD9 /* ClaudeSwitchApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ClaudeSwitchApp.swift"; sourceTree = "<group>"; };
+		A9DE6E3F6E2F31CE51FF29A8 /* AppEnvironment.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "AppEnvironment.swift"; sourceTree = "<group>"; };
+		EC0353EECE9336A9EAE23069 /* Provider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Provider.swift"; sourceTree = "<group>"; };
+		544281D5BA0FFCAF96D205D1 /* AppState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "AppState.swift"; sourceTree = "<group>"; };
+		C109EACAA75A57B5136A898C /* ProxyServer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ProxyServer.swift"; sourceTree = "<group>"; };
+		F1A2A6598E44C9B9336B5FA0 /* ClaudeDesktopManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ClaudeDesktopManager.swift"; sourceTree = "<group>"; };
+		5C4C5AEB0F013358421AE703 /* ModelRouteResolver.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ModelRouteResolver.swift"; sourceTree = "<group>"; };
+		6E4520280F235CC66F2199C9 /* PresetProviders.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "PresetProviders.swift"; sourceTree = "<group>"; };
+		9D795D9F1B140AD2C993EF9D /* MainWindow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "MainWindow.swift"; sourceTree = "<group>"; };
+		7854DB7406F840C394EAD56C /* MenuBarMenu.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "MenuBarMenu.swift"; sourceTree = "<group>"; };
+		57B32C7047EB177F6C9C69C3 /* DetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "DetailView.swift"; sourceTree = "<group>"; };
+		F27CF315C4226F9EC9B74283 /* ConnectionStatusView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ConnectionStatusView.swift"; sourceTree = "<group>"; };
+		84ECCB796DF04D16C60189E1 /* ProviderListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "ProviderListView.swift"; sourceTree = "<group>"; };
+		226CDFB9A695ADD8A866B6A8 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "SettingsView.swift"; sourceTree = "<group>"; };
+		E84893AA7BFE468AAE1AC0D8 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		90A96DDDCF4B1D77DC611104 /* ClaudeSwitch.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = ClaudeSwitch.entitlements; sourceTree = "<group>"; };
+		2F54427305ECCD449BBCDCC8 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 	/* End PBXFileReference section */
 
 	/* Begin PBXFrameworksBuildPhase section */
-		FF8A723BA293B8E2674B0AAF /* Frameworks */ = {
+		D14566B4D6DE91FFA1CF7A03 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				A859421E437B4F1C98258A3C /* Assets.xcassets in Resources */,
+				84B5131C6FBB764681DBA82F /* Assets.xcassets in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 	/* End PBXFrameworksBuildPhase section */
 
 	/* Begin PBXGroup section */
-		94E74A3B37D6072DD50CF8AA /* Models */ = {
+		62BACCF6EA785BC14B8FC465 /* Models */ = {
 			isa = PBXGroup;
 			children = (
-				3B4992B9D197709086E67592 /* Provider.swift */,
+				EC0353EECE9336A9EAE23069 /* Provider.swift */,
 			);
 			path = Models;
 			sourceTree = "<group>";
 		};
-		207907CD6CE3E775A8F0EE96 /* ViewModels */ = {
+		981979F17BBDA476D28AF3DF /* ViewModels */ = {
 			isa = PBXGroup;
 			children = (
-				579A4440744F1A00BA1DED58 /* AppState.swift */,
+				544281D5BA0FFCAF96D205D1 /* AppState.swift */,
 			);
 			path = ViewModels;
 			sourceTree = "<group>";
 		};
-		D88DD43457ADB2C82FDD5E30 /* Views */ = {
+		F6B0529C1423D2C1D0130882 /* Views */ = {
 			isa = PBXGroup;
 			children = (
-				59FC64119735930B9478999A /* MainWindow.swift */,
-				DE8D7A55D4FA226BCC16BCD6 /* MenuBarMenu.swift */,
-				7DFC8F1D1E5852F4FAF90AD9 /* DetailView.swift */,
-				4A866047D96B62A6E17BF18D /* ConnectionStatusView.swift */,
-				563BEF1796DFBB71607DDD1A /* ProviderListView.swift */,
-				A172EA04B5636E35B4CC6B40 /* SettingsView.swift */,
+				9D795D9F1B140AD2C993EF9D /* MainWindow.swift */,
+				7854DB7406F840C394EAD56C /* MenuBarMenu.swift */,
+				57B32C7047EB177F6C9C69C3 /* DetailView.swift */,
+				F27CF315C4226F9EC9B74283 /* ConnectionStatusView.swift */,
+				84ECCB796DF04D16C60189E1 /* ProviderListView.swift */,
+				226CDFB9A695ADD8A866B6A8 /* SettingsView.swift */,
 			);
 			path = Views;
 			sourceTree = "<group>";
 		};
-		647845DA9B30961E72D72C02 /* Services */ = {
+		7A23E36CE8B21715FBDE515F /* Services */ = {
 			isa = PBXGroup;
 			children = (
-				96F19883B9F0E6075540F8BF /* ProxyServer.swift */,
-				2DC6424D3C279114C5134D78 /* ClaudeDesktopManager.swift */,
-				BB21BAF7713E05D993029A97 /* ModelRouteResolver.swift */,
-				19BB0BC545756A6053F0E8CC /* PresetProviders.swift */,
+				C109EACAA75A57B5136A898C /* ProxyServer.swift */,
+				F1A2A6598E44C9B9336B5FA0 /* ClaudeDesktopManager.swift */,
+				5C4C5AEB0F013358421AE703 /* ModelRouteResolver.swift */,
+				6E4520280F235CC66F2199C9 /* PresetProviders.swift */,
 			);
 			path = Services;
 			sourceTree = "<group>";
 		};
-		D1295F6FA60F862C620C9ACA /* ClaudeSwitch */ = {
+		806BEA6D20B9BF31FD6DB9E0 /* ClaudeSwitch */ = {
 			isa = PBXGroup;
 			children = (
-				438FFF016277B824CC465C19 /* ClaudeSwitchApp.swift */,
-				87EB1A4896B422E95061279C /* AppEnvironment.swift */,
-				94E74A3B37D6072DD50CF8AA /* Models */,
-				207907CD6CE3E775A8F0EE96 /* ViewModels */,
-				D88DD43457ADB2C82FDD5E30 /* Views */,
-				647845DA9B30961E72D72C02 /* Services */,
-				67D35199E97490C44A31FB89 /* Assets.xcassets */,
-				61C6F6E34436256F61B219E8 /* Info.plist */,
-				C54903F6530B9319034A67FC /* ClaudeSwitch.entitlements */,
+				96C0FF1E76D609E9D576BDD9 /* ClaudeSwitchApp.swift */,
+				A9DE6E3F6E2F31CE51FF29A8 /* AppEnvironment.swift */,
+				62BACCF6EA785BC14B8FC465 /* Models */,
+				981979F17BBDA476D28AF3DF /* ViewModels */,
+				F6B0529C1423D2C1D0130882 /* Views */,
+				7A23E36CE8B21715FBDE515F /* Services */,
+				2F54427305ECCD449BBCDCC8 /* Assets.xcassets */,
+				E84893AA7BFE468AAE1AC0D8 /* Info.plist */,
+				90A96DDDCF4B1D77DC611104 /* ClaudeSwitch.entitlements */,
 			);
 			path = ClaudeSwitch;
 			sourceTree = "<group>";
 		};
-		0B8450674BFC1698BA5A1028 = {
+		A28668AB2BDCD1712566A391 = {
 			isa = PBXGroup;
 			children = (
-				D1295F6FA60F862C620C9ACA /* ClaudeSwitch */,
+				806BEA6D20B9BF31FD6DB9E0 /* ClaudeSwitch */,
 			);
 			sourceTree = "<group>";
 		};
 	/* End PBXGroup section */
 
 	/* Begin PBXNativeTarget section */
-		9E99F77D876FF84A7391E7C4 /* ClaudeSwitch */ = {
+		A1C7BF9FD4E3695403C3949C /* ClaudeSwitch */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = A6E937134498C01567E45B3A /* Build configuration list for PBXNativeTarget "ClaudeSwitch" */;
+			buildConfigurationList = D8CC89DDF8E649F5141D4E80 /* Build configuration list for PBXNativeTarget "ClaudeSwitch" */;
 			buildPhases = (
-				E93A76EBBC29506A73F49F13 /* Sources */,
-				FF8A723BA293B8E2674B0AAF /* Frameworks */,
-				C48E3A04DA6DB947AE956D74 /* Resources */,
+				8B32D85A543F6492359851F1 /* Sources */,
+				D14566B4D6DE91FFA1CF7A03 /* Frameworks */,
+				F45CA503CD64EB3098CBBDE3 /* Resources */,
 			);
 			buildRules = (
 			);
@@ -136,25 +136,25 @@
 			);
 			name = ClaudeSwitch;
 			productName = ClaudeSwitch;
-			productReference = B54A01DB798382B9AC8BA74A /* ClaudeSwitch.app */;
+			productReference = 9112DDBE12A918B7BF5404A5 /* ClaudeSwitch.app */;
 			productType = "com.apple.product-type.application";
 		};
 	/* End PBXNativeTarget section */
 
 	/* Begin PBXProject section */
-		1B8F70A8D20002924443A140 /* Project object */ = {
+		A1283904160084C5162228C2 /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
 				BuildIndependentTargetsInParallel = 1;
 				LastSwiftUpdateCheck = 1500;
 				LastUpgradeCheck = 1500;
 				TargetAttributes = {
-					9E99F77D876FF84A7391E7C4 = {
+					A1C7BF9FD4E3695403C3949C = {
 						CreatedOnToolsVersion = 15.0;
 					};
 				};
 			};
-			buildConfigurationList = 0DE2FF3AE9AB4F78EDB23DC3 /* Build configuration list for PBXProject "ClaudeSwitch" */;
+			buildConfigurationList = 9522F3236682A4917E053C30 /* Build configuration list for PBXProject "ClaudeSwitch" */;
 			compatibilityVersion = "Xcode 14.0";
 			developmentRegion = en;
 			hasScannedForEncodings = 0;
@@ -162,54 +162,54 @@
 				en,
 				Base,
 			);
-			mainGroup = 0B8450674BFC1698BA5A1028;
-			productRefGroup = D1295F6FA60F862C620C9ACA /* ClaudeSwitch */;
+			mainGroup = A28668AB2BDCD1712566A391;
+			productRefGroup = 806BEA6D20B9BF31FD6DB9E0 /* ClaudeSwitch */;
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
-				9E99F77D876FF84A7391E7C4 /* ClaudeSwitch */,
+				A1C7BF9FD4E3695403C3949C /* ClaudeSwitch */,
 			);
 		};
 	/* End PBXProject section */
 
 	/* Begin PBXResourcesBuildPhase section */
-		C48E3A04DA6DB947AE956D74 /* Resources */ = {
+		F45CA503CD64EB3098CBBDE3 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				A859421E437B4F1C98258A3C /* Assets.xcassets in Resources */,
+				84B5131C6FBB764681DBA82F /* Assets.xcassets in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 	/* End PBXResourcesBuildPhase section */
 
 	/* Begin PBXSourcesBuildPhase section */
-		E93A76EBBC29506A73F49F13 /* Sources */ = {
+		8B32D85A543F6492359851F1 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				A859421E437B4F1C98258A3C /* Assets.xcassets in Resources */,
-				D55B06963A22E3B3044390D9 /* ClaudeSwitchApp.swift in Sources */,
-				FA05B19D52DF65900D79AE2C /* AppEnvironment.swift in Sources */,
-				57B6268AE24AF116B2A1B2B9 /* Provider.swift in Sources */,
-				D196C36B8F616BA469B34494 /* AppState.swift in Sources */,
-				4BF43D7FB54D1614797D2423 /* ProxyServer.swift in Sources */,
-				0C7261CE9E00646B64C66B53 /* ClaudeDesktopManager.swift in Sources */,
-				D50152148F64ED6627AAFF68 /* ModelRouteResolver.swift in Sources */,
-				E32911C6205EE8967D06ED37 /* PresetProviders.swift in Sources */,
-				08915E5AE956DB1262EEC278 /* MainWindow.swift in Sources */,
-				20CB40BA48190D92AD296447 /* MenuBarMenu.swift in Sources */,
-				6A2C3DA8D04C39916ED12A51 /* DetailView.swift in Sources */,
-				69C5E28E1D3A2974F8EAFDD3 /* ConnectionStatusView.swift in Sources */,
-				856C688712FB2B0801C46D1E /* ProviderListView.swift in Sources */,
-				E4864D619C0A97A79D2A0BA8 /* SettingsView.swift in Sources */,
+				84B5131C6FBB764681DBA82F /* Assets.xcassets in Resources */,
+				627E9FEC536CC622EE57F3A7 /* ClaudeSwitchApp.swift in Sources */,
+				5FAF815AF3AD536A8E0CD0EE /* AppEnvironment.swift in Sources */,
+				6F63C519CC44B13799429931 /* Provider.swift in Sources */,
+				8557202705D1592718BD12E6 /* AppState.swift in Sources */,
+				C993FDD7574387810D32E67D /* ProxyServer.swift in Sources */,
+				9A94C8691C5F40C2D4E7E434 /* ClaudeDesktopManager.swift in Sources */,
+				C1EA897DE0C8B5F2E7AD72F9 /* ModelRouteResolver.swift in Sources */,
+				3C4D38A4F7E7EFD762C14953 /* PresetProviders.swift in Sources */,
+				FC99E303CB523A4EE89649BA /* MainWindow.swift in Sources */,
+				BD7F40E3C9D887F64EBF5D93 /* MenuBarMenu.swift in Sources */,
+				46437CAE39F220BAAE5626CA /* DetailView.swift in Sources */,
+				A5B41ADEFE5A66A8D697F2FF /* ConnectionStatusView.swift in Sources */,
+				9440496FA0F35A7F01EB5A80 /* ProviderListView.swift in Sources */,
+				DA794C8F0105F66C3BD78C0D /* SettingsView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 	/* End PBXSourcesBuildPhase section */
 
 	/* Begin XCBuildConfiguration section */
-		660A66B41AC7A8ED350A2EC0 /* Debug */ = {
+		F746830619AECB3406E7E6F1 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = "NO";
@@ -272,7 +272,7 @@
 			};
 			name = Debug;
 		};
-		BEDBD7152B49E26A0C3F8380 /* Release */ = {
+		F709E509ECECDE72189EE5A6 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = "NO";
@@ -334,7 +334,7 @@
 			};
 			name = Release;
 		};
-		C9C33FBDF4A929F26F58B773 /* Debug */ = {
+		806436CCCBA4890A5A167555 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = "AppIcon";
@@ -352,7 +352,7 @@
 					"@executable_path/../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = "13.0";
-				MARKETING_VERSION = "1.0.10";
+				MARKETING_VERSION = "1.1.1";
 				PRODUCT_BUNDLE_IDENTIFIER = "com.claude.switch";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = "YES";
@@ -360,7 +360,7 @@
 			};
 			name = Debug;
 		};
-		BA01ABD63D36C8B6A11A1B84 /* Release */ = {
+		B6EFA9AFC4EDDF6504A96302 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = "AppIcon";
@@ -378,7 +378,7 @@
 					"@executable_path/../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = "13.0";
-				MARKETING_VERSION = "1.0.10";
+				MARKETING_VERSION = "1.1.1";
 				PRODUCT_BUNDLE_IDENTIFIER = "com.claude.switch";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = "YES";
@@ -389,25 +389,25 @@
 	/* End XCBuildConfiguration section */
 
 	/* Begin XCConfigurationList section */
-		0DE2FF3AE9AB4F78EDB23DC3 /* Build configuration list for PBXProject "ClaudeSwitch" */ = {
+		9522F3236682A4917E053C30 /* Build configuration list for PBXProject "ClaudeSwitch" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				660A66B41AC7A8ED350A2EC0 /* Debug */,
-				BEDBD7152B49E26A0C3F8380 /* Release */,
+				F746830619AECB3406E7E6F1 /* Debug */,
+				F709E509ECECDE72189EE5A6 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		A6E937134498C01567E45B3A /* Build configuration list for PBXNativeTarget "ClaudeSwitch" */ = {
+		D8CC89DDF8E649F5141D4E80 /* Build configuration list for PBXNativeTarget "ClaudeSwitch" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				C9C33FBDF4A929F26F58B773 /* Debug */,
-				BA01ABD63D36C8B6A11A1B84 /* Release */,
+				806436CCCBA4890A5A167555 /* Debug */,
+				B6EFA9AFC4EDDF6504A96302 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
 	/* End XCConfigurationList section */
 		};
-		rootObject = 1B8F70A8D20002924443A140 /* Project object */;
+		rootObject = A1283904160084C5162228C2 /* Project object */;
 	}
